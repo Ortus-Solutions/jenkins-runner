@@ -1,5 +1,7 @@
 component {
 
+    this.cfMapping = 'jenkinsRunner';
+
     settings = {
         username : '',
         password : '',
@@ -10,7 +12,7 @@ component {
     function configure() {
 		wirebox.getBinder()
 			.map( [ "JenkinsRunner", "JenkinsRunner@jenkins-runner" ] )
-			.to( "jenkins-runner.models.JenkinsRunner" )
+			.to( "jenkinsRunner.models.JenkinsRunner" )
 			.initArg( name="username", value=settings.username )
 			.initArg( name="password", value=settings.password )
 			.initArg( name="jenkinsAPIURL", value=settings.jenkinsAPIURL );

@@ -15,5 +15,5 @@
     "shortDescription":"A simple utility for running a Jenkins job from CFML and optionally capturing the output",
     "slug":"jenkins-runner",
     "type":"modules",
-    "version":"1.0.2"
+    "version":"1.0.3"
 }

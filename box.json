@@ -1,0 +1,19 @@
+{
+    "author":"Brad Wood",
+    "homepage":"https://github.com/Ortus-Solutions/jenkins-runner",
+    "keywords":"jenkins",
+    "location":"ForgeboxStorage",
+    "name":"Jenkins Runner",
+    "repository":{
+        "type":"Git",
+        "URL":"https://github.com/Ortus-Solutions/jenkins-runner"
+    },
+    "scripts":{
+        "onRelease":"publish",
+        "postPublish":"!git push --follow-tags"
+    },
+    "shortDescription":"A simple utility for running a Jenkins job from CFML and optionally capturing the output",
+    "slug":"jenkins-runner",
+    "type":"modules",
+    "version":"0.0.0"
+}

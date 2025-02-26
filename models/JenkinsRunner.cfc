@@ -40,11 +40,17 @@ component accessors=true singleton {
 
         // Find if this job has parameters
         http url=jobURL & '/api/json' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+        if( !isJSON( cfhttp.fileContent ) ) {
+            throw( message="Error getting job info: #cfhttp.statuscode#", detail=cfhttp.fileContent );
+        }
         var jobInfo = deserializeJSON( cfhttp.fileContent );
         var hasParameters = !!jobInfo.property.find( (prop)=>prop._class contains 'ParametersDefinitionProperty' );
 
         // Get a CSRF token (and session cookie)
         http url=getJenkinsAPIURL() & 'crumbIssuer/api/json' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+        if( !isJSON( cfhttp.fileContent ) ) {
+            throw( message="Error getting crumb info: #cfhttp.status_code#", detail=cfhttp.fileContent );
+        }
         var crumbInfo = deserializeJSON( cfhttp.fileContent );
         var cookies = cfhttp.cookies;
 
@@ -89,6 +95,9 @@ component accessors=true singleton {
 
         var getBuildInfo = ()=>{
             http url=buildURL & 'api/json' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+            if( !isJSON( cfhttp.fileContent ) ) {
+                throw( message="Error getting build info: #cfhttp.statuscode#", detail=cfhttp.fileContent );
+            }
             return deserializeJSON( cfhttp.fileContent );
         };
 

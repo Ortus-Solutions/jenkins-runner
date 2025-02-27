@@ -39,23 +39,26 @@ component accessors=true singleton {
         if( !jobURL.endsWith( '/' ) ) jobURL &= '/';
 
         // Find if this job has parameters
-        http url=jobURL & '/api/json' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+        var thisURL = jobURL & 'api/json';
+        http url=thisURL result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
         if( !isJSON( cfhttp.fileContent ) ) {
-            throw( message="Error getting job info: #cfhttp.statuscode#", detail=cfhttp.fileContent );
+            throw( message="Error getting job info: #cfhttp.statuscode# - #thisURL#", detail=cfhttp.fileContent );
         }
         var jobInfo = deserializeJSON( cfhttp.fileContent );
         var hasParameters = !!jobInfo.property.find( (prop)=>prop._class contains 'ParametersDefinitionProperty' );
 
         // Get a CSRF token (and session cookie)
-        http url=getJenkinsAPIURL() & 'crumbIssuer/api/json' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+        var thisURL = getJenkinsAPIURL() & 'crumbIssuer/api/json';
+        http url=thisURL result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
         if( !isJSON( cfhttp.fileContent ) ) {
-            throw( message="Error getting crumb info: #cfhttp.status_code#", detail=cfhttp.fileContent );
+            throw( message="Error getting crumb info: #cfhttp.status_code# - #thisURL#", detail=cfhttp.fileContent );
         }
         var crumbInfo = deserializeJSON( cfhttp.fileContent );
         var cookies = cfhttp.cookies;
 
         // Actually fire the build (passing CSRF token and session cookie)
-        http url=jobURL & 'build#( hasParameters ? 'WithParameters' : '' )#' result='local.cfhttp' method='POST' throwOnError=false username=getUsername() password=getPassword() timeout=10 {
+        var thisURL = jobURL & 'build#( hasParameters ? 'WithParameters' : '' )#';
+        http url=thisURL result='local.cfhttp' method='POST' throwOnError=false username=getUsername() password=getPassword() timeout=10 {
             httpParam type='header' name=crumbInfo.crumbRequestField value=crumbInfo.crumb;
             jobParameters.each( (k,v)=>{ httpParam type='url' name=k value=v; } );
             cookies.each( (row)=>{ httpParam type='cookie' name=row.name value=row.value; } );
@@ -63,7 +66,7 @@ component accessors=true singleton {
         }
 
         if( cfhttp.status_code != 201 ) {
-            throw( message="Error starting job: #cfhttp.statuscode#", detail=cfhttp.fileContent );
+            throw( message="Error starting job: #cfhttp.statuscode# - #thisURL#", detail=cfhttp.fileContent );
         }
         // If we dont want the job output, just abort here
         if( !returnOutput ) return '';
@@ -71,7 +74,8 @@ component accessors=true singleton {
         var queueLocationURL = cfhttp.responseHeader.location;
 
         var getQueueInfo = ()=>{
-            http url=queueLocationURL & 'api/json' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+            var thisURL = queueLocationURL & 'api/json';
+            http url=thisURL result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
             return deserializeJSON( cfhttp.fileContent );
         };
 
@@ -94,9 +98,10 @@ component accessors=true singleton {
         var jobConsoleOutput = '';
 
         var getBuildInfo = ()=>{
-            http url=buildURL & 'api/json' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+            var thisURL = buildURL & 'api/json';
+            http url=thisURL result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() encodeurl=false timeout=10;
             if( !isJSON( cfhttp.fileContent ) ) {
-                throw( message="Error getting build info: #cfhttp.statuscode#", detail=cfhttp.fileContent );
+                throw( message="Error getting build info: #cfhttp.statuscode# - #thisURL#", detail=cfhttp.fileContent );
             }
             return deserializeJSON( cfhttp.fileContent );
         };
@@ -105,7 +110,8 @@ component accessors=true singleton {
             // Jenkins seems to have a bug where if your "start" position lands in the middle of the name of the user running the build, there is some sort of extra
             // metadata around that which gets cut in half and leaves junk in the output, throwing off the count.  The only way I can get this to work reliably is to
             // get all text and find out what changed.
-            http url=buildURL & 'consoleText/progressiveText?start=0' result='local.cfhttp' throwOnError=false username=getUsername() password=getPassword() timeout=10;
+            var thisURL = buildURL & 'consoleText/progressiveText?start=0';
+            http url=thisURL result='local.cfhttp' throwOnError=false username=getUsername() encodeurl=false password=getPassword() timeout=10;
             if( len( jobConsoleOutput ) ) {
                 var chunk = cfhttp.fileContent.replaceNoCase( jobConsoleOutput, '' );
             } else {
